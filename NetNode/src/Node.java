@@ -70,6 +70,8 @@ public class Node {
 		ArrayList<NodeInfo> nodeInfoList = parseNodeInfo(file);
 		log("nodelist:" + nodeInfoList.toString());
 		
+		// find yourself in node list
+		
 		// do stuff
 		
 		log(this.toString());
