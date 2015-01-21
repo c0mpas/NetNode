@@ -71,6 +71,10 @@ public class Node {
 		log("nodelist:" + nodeInfoList.toString());
 		
 		// find yourself in node list
+		// fetch additional info (ip, port)
+		// choose three neighbours from node list (not yourself)
+		// establish connections to neighbours
+		// wait?
 		
 		// do stuff
 		
