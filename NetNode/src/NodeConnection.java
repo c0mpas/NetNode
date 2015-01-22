@@ -1,6 +1,7 @@
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -15,13 +16,13 @@ public class NodeConnection {
 		this.partner = partner;
 	}
 	
-	public void listen() {		
+	public synchronized void listen() {		
 		listening = true;
 		Thread listenerThread = new Thread() {
 			public void run() {
-				Socket socket;
-				ServerSocket listener;
-				ObjectInputStream inputStream;
+				Socket socket = null;
+				ServerSocket listener = null;
+				ObjectInputStream inputStream = null;
 				try {
 					listener = new ServerSocket(node.getNodeInfo().getPort());
 					try {
@@ -35,17 +36,42 @@ public class NodeConnection {
 					} catch (ClassNotFoundException e) {
 						e.printStackTrace();
 					} finally {
+						inputStream.close();
 						listener.close();
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
+				} finally {
+					try {
+						socket.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
+				
 			}
 		};
 		listenerThread.start();
 	}
 	
-	public void send() {}
+	public synchronized void send(NodeMessage message) {
+		Thread senderThread = new Thread() {
+			public void run() {
+				try {
+					Socket socket = new Socket(partner.getHost(), partner.getPort());
+					ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+					// send message
+					outputStream.writeObject(message);
+					// close connections
+					outputStream.close();
+					socket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		senderThread.start();
+	}
 	
 	// return string representing this node
 	public String toString() {

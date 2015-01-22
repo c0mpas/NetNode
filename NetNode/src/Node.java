@@ -20,6 +20,7 @@ public class Node {
 	private static final int neighbourCount = 3;
 	
 	static PrintStream out = System.out;
+	Scanner in;
 
 
 	/*
@@ -134,13 +135,14 @@ public class Node {
 	private void run() {
 		boolean menu = true;
 		String input = null;
-		Scanner in = new Scanner(System.in);
+		in = new Scanner(System.in);
 		int choice = 0;
 		
 		while (menu) {
 			// show menu
 			showMenu();
 			// wait for user input
+			
 			try {
 				input = in.nextLine();
 			} catch (Exception e) {
@@ -155,8 +157,7 @@ public class Node {
 			}
 			
 			switch (choice) {
-				case 1 :	// todo
-							sendMessageInfo(/* todo */);
+				case 1 :	sendMessageInfo();
 							break;
 				case 2 :	// todo
 							break;
@@ -263,8 +264,25 @@ public class Node {
 	 * outgoing message handling
 	 */
 	
-	private void sendMessageInfo(/* todo */) {
-		// todo
+	private void sendMessageInfo() {
+		out.println(" ");
+		out.println("# message #");
+		String msg = null;
+		
+		try {
+			msg = in.nextLine();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if (msg != null && !msg.isEmpty()) {
+			NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_INFO, msg);
+			for (NodeConnection connection : connections) {
+				synchronized (this) {
+					connection.send(message);
+				}
+			}
+		}
 	}
 	
 

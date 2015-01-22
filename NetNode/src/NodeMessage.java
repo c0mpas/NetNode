@@ -1,6 +1,10 @@
+import java.io.Serializable;
 
-public class NodeMessage {
 
+public class NodeMessage implements Serializable {
+
+	private static final long serialVersionUID = 6960679654671161531L;
+	
 	public static final int MSG_TYPE_INFO	= 1;
 	public static final int MSG_TYPE_ECHO	= 2;
 	public static final int MSG_TYPE_RUMOUR	= 3;
@@ -12,8 +16,6 @@ public class NodeMessage {
 	private NodeInfo receiver;
 	
 	
-	public NodeMessage() {}
-
 	public NodeMessage(int type) {
 		setType(type);
 	}

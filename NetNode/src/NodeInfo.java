@@ -6,8 +6,6 @@ public class NodeInfo {
 	private int port;
 	
 	
-	private NodeInfo() {}
-	
 	public NodeInfo(int id) {
 		setId(id);
 	}
