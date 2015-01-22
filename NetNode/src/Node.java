@@ -180,6 +180,7 @@ public class Node {
 	public void quit() {
 		// close connections?
 		log("node " + this.node.getId() + " terminated");
+		waitForIt(1);
 		System.exit(0);
 	}
 	

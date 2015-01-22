@@ -14,15 +14,18 @@ public class NodeMessage implements Serializable {
 	private String message;
 	private NodeInfo sender;
 	private NodeInfo receiver;
+	private int hash;
 	
 	
 	public NodeMessage(int type) {
 		setType(type);
+		this.hash = getHash();
 	}
 	
 	public NodeMessage(int type, String message) {
 		setType(type);
 		setMessage(message);
+		this.hash = getHash();
 	}
 
 	
@@ -68,6 +71,10 @@ public class NodeMessage implements Serializable {
 		return this.message;
 	}
 	
+	public static int getHash() {
+		return String.valueOf(System.currentTimeMillis()).hashCode();
+	}
+	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("NodeMessage(type=").append(type);
@@ -75,6 +82,7 @@ public class NodeMessage implements Serializable {
 		sb.append("|message=").append(message);
 		sb.append("|sender=").append(sender);
 		sb.append("|receiver=").append(receiver);
+		sb.append("|hash=").append(hash);
 		sb.append(")");
 		return sb.toString();
 	}
