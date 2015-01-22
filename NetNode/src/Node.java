@@ -163,7 +163,9 @@ public class Node {
 							break;
 				case 3 :	// todo
 							break;
-				case 4 :	menu = false;
+				case 4 :	sendMessageQuit();
+							waitForIt(5);
+							menu = false;
 							break;
 				default :	// do nothing
 							break;
@@ -252,7 +254,9 @@ public class Node {
 	}
 
 	public void processMessageQuit(NodeMessage message) {
-		// todo
+		log("received quit message");
+		waitForIt(3);
+		quit();
 	}
 
 	public void forwardMessage(NodeMessage message) {
@@ -264,6 +268,7 @@ public class Node {
 	 * outgoing message handling
 	 */
 	
+	// send info message with text
 	private void sendMessageInfo() {
 		out.println(" ");
 		out.println("# message #");
@@ -285,11 +290,30 @@ public class Node {
 		}
 	}
 	
+	// send quit message to terminate all nodes
+	private void sendMessageQuit() {
+		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_QUIT);
+		for (NodeConnection connection : connections) {
+			synchronized (this) {
+				connection.send(message);
+			}
+		}
+	}
+	
 
 	/*
 	 * miscellaneous
 	 */
 
+	// wait for it
+	private void waitForIt(int sec) {
+		try {
+			Thread.sleep(1000 * sec);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	// show menu
 	private void showMenu() {
 		out.println(" ");
