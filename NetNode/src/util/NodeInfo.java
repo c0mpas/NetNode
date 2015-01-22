@@ -6,17 +6,36 @@ public class NodeInfo {
 	private String host;
 	private int port;
 	
+	
 	private NodeInfo() {}
 	
-	public NodeInfo(int id, String ip, int port) {
+	public NodeInfo(int id) {
+		setId(id);
+	}
+	
+	public NodeInfo(int id, String host, int port) {
+		setId(id);
+		setHost(host);
+		setPort(port);
+	}
+	
+	
+	private void setId(int id) {
 		if (id < 1) throw new RuntimeException("id invalid");
-		if ((ip == null) || (ip.isEmpty())) throw new RuntimeException("host invalid");
-		if (port < 1) throw new RuntimeException("port invalid");
 		this.id = id;
-		this.host = ip;
+	}
+
+	public void setHost(String host) {
+		if ((host == null) || (host.isEmpty())) throw new RuntimeException("host invalid");
+		this.host = host;
+	}
+
+	public void setPort(int port) {
+		if (port < 1) throw new RuntimeException("port invalid");
 		this.port = port;
 	}
 
+	
 	public int getId() {
 		return id;
 	}
@@ -28,6 +47,7 @@ public class NodeInfo {
 	public int getPort() {
 		return port;
 	}
+	
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

@@ -8,12 +8,11 @@ import java.util.*;
 
 public class Node {
 	
-	private int id;
-	private String host;
-	private int port;
+	private NodeInfo node;
 	
 	private String file;
 	private ArrayList<NodeConnection> connections;
+	private NodeConnection incoming;
 	
 	private static final int neighbourCount = 3;
 
@@ -62,7 +61,7 @@ public class Node {
 	public Node(int id, String file) {
 		if (id < 1) throw new RuntimeException("id invalid (must be > 0)");
 		if ((file == null) || (file.isEmpty())) throw new RuntimeException("filename invalid");
-		this.id = id;
+		this.node = new NodeInfo(id);
 		this.file = file;
 	}
 	
@@ -75,9 +74,8 @@ public class Node {
 		boolean found = false;
 		int index = -1;
 		for (NodeInfo current : nodeInfoList) {
-			if (current.getId() == this.id) {
-				this.host = current.getHost();
-				this.port = current.getPort();
+			if (current.getId() == this.node.getId()) {
+				this.node = current;
 				found = true;
 				index = nodeInfoList.indexOf(current);
 				break;
@@ -127,7 +125,7 @@ public class Node {
 	// stop this node
 	public void quit() {
 		// close connections?
-		log("node " + this.id + " terminated");
+		log("node " + this.node.getId() + " terminated");
 		System.exit(0);
 	}
 	
@@ -169,9 +167,7 @@ public class Node {
 	// return string representing this node
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("node(id=").append(id);
-		sb.append("|host=").append(host);
-		sb.append("|port=").append(port);
+		sb.append("node(\n").append(node);
 		sb.append("|file=").append(file);
 		sb.append("|connections(").append(connections);
 		sb.append(")");
