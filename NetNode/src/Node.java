@@ -9,7 +9,7 @@ import java.util.*;
 public class Node {
 	
 	private int id;
-	private String ip;
+	private String host;
 	private int port;
 	
 	private String file;
@@ -42,7 +42,7 @@ public class Node {
 		    if (line.hasOption("file")) {
 		        file = line.getOptionValue("file");
 		    } else {
-		    	throw new RuntimeException("input iile");
+		    	throw new RuntimeException("input file");
 		    }
 		    // create node
 		    new Node(id, file).init();
@@ -50,16 +50,14 @@ public class Node {
 		    log("parse error: " + e.getMessage());
 		} catch (RuntimeException e) {
 		    log("parameter error: " + e.getMessage());
+		    e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	
-	private Node() {
-		this.id = 0;
-		this.file = "";
-	}
+	private Node() {}
 	
 	public Node(int id, String file) {
 		if (id < 1) throw new RuntimeException("id invalid (must be > 0)");
@@ -70,15 +68,15 @@ public class Node {
 	
 
 	public void init() {
+		connections = new ArrayList<NodeConnection>();
 		ArrayList<NodeInfo> nodeInfoList = parseNodeInfo(file);
-		log("nodelist:" + nodeInfoList.toString());
 		
 		// find yourself in node list
 		boolean found = false;
 		int index = -1;
 		for (NodeInfo current : nodeInfoList) {
 			if (current.getId() == this.id) {
-				this.ip = current.getIp();
+				this.host = current.getHost();
 				this.port = current.getPort();
 				found = true;
 				index = nodeInfoList.indexOf(current);
@@ -86,7 +84,6 @@ public class Node {
 			}
 		}
 		if (!found) throw new RuntimeException("node is not part of the node network");
-		log(this.toString());
 		
 		// determine possible neighbours (remove yourself from list)
 		nodeInfoList.remove(index);
@@ -101,6 +98,8 @@ public class Node {
 			nodeInfoList.remove(pos);
 		}
 		
+		listen();
+		
 		log("ready");
 		
 		// do stuff
@@ -111,7 +110,12 @@ public class Node {
 		
 	}
 
+	private void listen() {
+		// open server socket and listen
+	}
+	
 	private void run() {
+		log(this.toString());
 		// wait for user input
 		try{
 			System.in.read();
@@ -147,7 +151,6 @@ public class Node {
 		// establish connection to node
 		NodeConnection connection = new NodeConnection(node);
 		connections.add(connection);
-		log("connected to " + node);
 	}
 	
 	// returns a random number [min;max]
@@ -156,7 +159,7 @@ public class Node {
 	}
 	
 	// print message with timestamp
-	private static void log(String message) {
+	public static void log(String message) {
 		if ((message == null) || (message.isEmpty())) message = "";
 		java.sql.Timestamp timestamp = new java.sql.Timestamp(System.currentTimeMillis());
 		timestamp.setNanos(0);
@@ -167,10 +170,10 @@ public class Node {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("node(id=").append(id);
-		sb.append("|ip=").append(ip);
+		sb.append("|host=").append(host);
 		sb.append("|port=").append(port);
 		sb.append("|file=").append(file);
-		sb.append("|connections=").append(connections);
+		sb.append("|connections(").append(connections);
 		sb.append(")");
 		return sb.toString();
 	}

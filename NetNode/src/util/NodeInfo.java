@@ -1,22 +1,19 @@
 package util;
 
 public class NodeInfo {
+	
 	private int id;
-	private String ip;
+	private String host;
 	private int port;
 	
-	private NodeInfo() {
-		this.id = 0;
-		this.ip = ("0.0.0.0");
-		this.port = 0;
-	}
+	private NodeInfo() {}
 	
 	public NodeInfo(int id, String ip, int port) {
-		if (id < 1) throw new RuntimeException("ID invalid");
-		if ((ip == null) || (ip.isEmpty())) throw new RuntimeException("IP invalid");
-		if (port < 1) throw new RuntimeException("Port invalid");
+		if (id < 1) throw new RuntimeException("id invalid");
+		if ((ip == null) || (ip.isEmpty())) throw new RuntimeException("host invalid");
+		if (port < 1) throw new RuntimeException("port invalid");
 		this.id = id;
-		this.ip = ip;
+		this.host = ip;
 		this.port = port;
 	}
 
@@ -24,8 +21,8 @@ public class NodeInfo {
 		return id;
 	}
 
-	public String getIp() {
-		return ip;
+	public String getHost() {
+		return host;
 	}
 
 	public int getPort() {
@@ -34,9 +31,9 @@ public class NodeInfo {
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("NodeInfo(ID=").append(id);
-		sb.append("|IP=").append(ip);
-		sb.append("|Port=").append(port);
+		sb.append("NodeInfo(id=").append(id);
+		sb.append("|host=").append(host);
+		sb.append("|port=").append(port);
 		sb.append(")");
 		return sb.toString();
 	}

@@ -15,7 +15,7 @@ public class FileParser {
 	    Scanner scanner = new Scanner(new FileReader(input));
 	    NodeInfo current;
 	    int id;
-	    String ip;
+	    String host;
 	    int port;
 	    String line;
 	    String[] parts;
@@ -27,9 +27,9 @@ public class FileParser {
 	            parts = line.split(" ");
 	            id = Integer.parseInt(parts[0]);
 	            parts = parts[1].split(":");
-	            ip = parts[0];
+	            host = parts[0];
 	            port = Integer.parseInt(parts[1]);
-	            current = new NodeInfo(id, ip, port);
+	            current = new NodeInfo(id, host, port);
 	            // add NodeInfo to ArrayList
 	            nodeInfoList.add(current);
 	        }
