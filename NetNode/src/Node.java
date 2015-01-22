@@ -2,6 +2,7 @@ import org.apache.commons.cli.*;
 
 import util.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -12,7 +13,9 @@ public class Node {
 	private int port;
 	
 	private String file;
-	private ArrayList connections; // add type info
+	private ArrayList<NodeConnection> connections;
+	
+	private static final int neighbourCount = 3;
 
 	
 	public static void main(String[] args) {
@@ -33,20 +36,20 @@ public class Node {
 		    if (line.hasOption("id")) {
 		        id = Integer.parseInt(line.getOptionValue("id"));
 		    } else {
-		    	throw new RuntimeException("Missing ID");
+		    	throw new RuntimeException("missing id");
 		    }
 		    // check input file
 		    if (line.hasOption("file")) {
 		        file = line.getOptionValue("file");
 		    } else {
-		    	throw new RuntimeException("Input File");
+		    	throw new RuntimeException("input iile");
 		    }
 		    // create node
-		    new Node(id, file).run();
+		    new Node(id, file).init();
 		} catch (ParseException e) {
-		    log("Parse Error: " + e.getMessage());
+		    log("parse error: " + e.getMessage());
 		} catch (RuntimeException e) {
-		    log("Parameter Error: " + e.getMessage());
+		    log("parameter error: " + e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -59,56 +62,100 @@ public class Node {
 	}
 	
 	public Node(int id, String file) {
-		if (id < 1) throw new RuntimeException("ID invalid (must be > 0)");
-		if ((file == null) || (file.isEmpty())) throw new RuntimeException("Filename invalid");
+		if (id < 1) throw new RuntimeException("id invalid (must be > 0)");
+		if ((file == null) || (file.isEmpty())) throw new RuntimeException("filename invalid");
 		this.id = id;
 		this.file = file;
 	}
 	
 
-	public void run() {
+	public void init() {
 		ArrayList<NodeInfo> nodeInfoList = parseNodeInfo(file);
 		log("nodelist:" + nodeInfoList.toString());
 		
 		// find yourself in node list
-		// fetch additional info (ip, port)
-		// choose three neighbours from node list (not yourself)
-		// establish connections to neighbours
-		// wait?
-		
-		// do stuff
-		
-		log(this.toString());
-		log("Node " + this.id + " ready");
-		
-		// do stuff
-		
-		// wait for user input
-		try{
-			System.in.read();
-		} catch (IOException e) {
-			e.printStackTrace();
+		boolean found = false;
+		int index = -1;
+		for (NodeInfo current : nodeInfoList) {
+			if (current.getId() == this.id) {
+				this.ip = current.getIp();
+				this.port = current.getPort();
+				found = true;
+				index = nodeInfoList.indexOf(current);
+				break;
+			}
 		}
+		if (!found) throw new RuntimeException("node is not part of the node network");
+		log(this.toString());
+		
+		// determine possible neighbours (remove yourself from list)
+		nodeInfoList.remove(index);
+		
+		// choose neighbours and connect to them
+		for (int i = 1; i <= neighbourCount; i++) {
+			int pos = getRand(0,nodeInfoList.size()-1);
+			NodeInfo current = nodeInfoList.get(pos);
+			// establish connection to this neighbour
+			connectTo(current);
+			// remove this neighbour from list
+			nodeInfoList.remove(pos);
+		}
+		
+		log("ready");
+		
+		// do stuff
+		run();
 		
 		// finish
 		quit();
 		
 	}
 
+	private void run() {
+		// wait for user input
+		try{
+			System.in.read();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	// stop this node
 	public void quit() {
 		// close connections?
-		log("Node " + this.id + " terminated");
+		log("node " + this.id + " terminated");
 		System.exit(0);
 	}
 	
-	
+	// parse info from file to arraylist
 	private ArrayList<NodeInfo> parseNodeInfo(String filename) {
 		ArrayList<NodeInfo> result = new ArrayList<NodeInfo>();
-		//result = FileParser.parse(filename);
-		result = FileParser.getDummy();
+		try {
+			result = FileParser.parse(filename);
+		} catch (FileNotFoundException e) {
+			log("unable to parse input file");
+			quit();
+		} catch (Exception e) {
+			e.printStackTrace();
+			quit();
+		}
+		// result = FileParser.getDummy();
 		return result;
 	}
 	
+	private void connectTo(NodeInfo node) {
+		// establish connection to node
+		NodeConnection connection = new NodeConnection(node);
+		connections.add(connection);
+		log("connected to " + node);
+	}
+	
+	// returns a random number [min;max]
+	public static int getRand(int min, int max) {
+		return (int) (Math.random() * (++max - min) + min);
+	}
+	
+	// print message with timestamp
 	private static void log(String message) {
 		if ((message == null) || (message.isEmpty())) message = "";
 		java.sql.Timestamp timestamp = new java.sql.Timestamp(System.currentTimeMillis());
@@ -116,13 +163,14 @@ public class Node {
 		System.out.println(timestamp + " " + message);
 	}
 	
+	// return string representing this node
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Node(ID=").append(id);
-		sb.append("|IP=").append(ip);
-		sb.append("|Port=").append(port);
-		sb.append("|File=").append(file);
-		sb.append("|Connections=").append(connections);
+		sb.append("node(id=").append(id);
+		sb.append("|ip=").append(ip);
+		sb.append("|port=").append(port);
+		sb.append("|file=").append(file);
+		sb.append("|connections=").append(connections);
 		sb.append(")");
 		return sb.toString();
 	}
