@@ -1,10 +1,14 @@
-import org.apache.commons.cli.*;
-
-import util.*;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class Node {
 	
@@ -15,7 +19,13 @@ public class Node {
 	private NodeConnection incoming;
 	
 	private static final int neighbourCount = 3;
+	
+	static PrintStream out = System.out;
 
+
+	/*
+	 * main method
+	 */
 	
 	public static void main(String[] args) {
 		log("=== NetNode ===");
@@ -55,6 +65,10 @@ public class Node {
 		}
 	}
 	
+
+	/*
+	 * constructors
+	 */
 	
 	private Node() {}
 	
@@ -66,6 +80,10 @@ public class Node {
 	}
 	
 
+	/*
+	 * control functions
+	 */
+	
 	public void init() {
 		connections = new ArrayList<NodeConnection>();
 		ArrayList<NodeInfo> nodeInfoList = parseNodeInfo(file);
@@ -98,6 +116,7 @@ public class Node {
 		
 		listen();
 		
+		log(this.toString());
 		log("ready");
 		
 		// do stuff
@@ -113,12 +132,37 @@ public class Node {
 	}
 	
 	private void run() {
-		log(this.toString());
-		// wait for user input
-		try{
-			System.in.read();
-		} catch (IOException e) {
-			e.printStackTrace();
+		boolean menu = true;
+		String input = null;
+		Scanner in = new Scanner(System.in);
+		int choice = 0;
+		
+		while (menu) {
+			// show menu
+			showMenu();
+			// wait for user input
+			try {
+				input = in.nextLine();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			// handle user input
+			try {
+				choice = Integer.parseInt(input);
+			} catch (Exception e) {
+				choice = 0;
+			}
+			
+			switch (choice) {
+				case 1 :	sendMessageInfo();
+							break;
+				case 2 :	break;
+				case 3 :	break;
+				case 4 :	break;
+				default :	break;
+			}
+			// todo
 		}
 	}
 	
@@ -147,13 +191,88 @@ public class Node {
 	
 	private void connectTo(NodeInfo node) {
 		// establish connection to node
-		NodeConnection connection = new NodeConnection(node);
+		NodeConnection connection = new NodeConnection(this, node);
 		connections.add(connection);
 	}
+
+	
+	/*
+	 * getter methods
+	 */
 	
 	// returns a random number [min;max]
 	public static int getRand(int min, int max) {
 		return (int) (Math.random() * (++max - min) + min);
+	}
+	
+	// returns the NodeInfo of this node
+	public NodeInfo getNodeInfo() {
+		return this.node;
+	}
+	
+	
+	/*
+	 * incoming message handling
+	 */
+	
+	// process incoming message
+	public void processMessage(NodeMessage message) {
+		log(message.toString());
+		switch (message.getType()) {
+			case NodeMessage.MSG_TYPE_INFO :	processMessageInfo(message);
+												break;
+			case NodeMessage.MSG_TYPE_ECHO :	processMessageEcho(message);
+												break;
+			case NodeMessage.MSG_TYPE_RUMOUR :	processMessageRumour(message);
+												break;
+			case NodeMessage.MSG_TYPE_QUIT :	processMessageQuit(message);
+												break;
+			default :							break;
+		}
+	}
+
+	public void processMessageInfo(NodeMessage message) {
+		log(message.toString());
+	}
+
+	public void processMessageEcho(NodeMessage message) {
+		// todo
+	}
+
+	public void processMessageRumour(NodeMessage message) {
+		// todo
+	}
+
+	public void processMessageQuit(NodeMessage message) {
+		// todo
+	}
+
+	public void forwardMessage(NodeMessage message) {
+		// todo
+	}
+
+	
+	/*
+	 * outgoing message handling
+	 */
+	
+	private void sendMessageInfo() {
+		// todo
+	}
+	
+
+	/*
+	 * miscellaneous
+	 */
+
+	// show menu
+	private void showMenu() {
+		out.println("########## Node ##########");
+		out.println("# 1  Send Message ");
+		out.println("# 2  Send Echo ");
+		out.println("# 3  Start Rumour ");
+		out.println("# 4  Quit (all) ");
+		out.println("##########################");
 	}
 	
 	// print message with timestamp
@@ -161,7 +280,7 @@ public class Node {
 		if ((message == null) || (message.isEmpty())) message = "";
 		java.sql.Timestamp timestamp = new java.sql.Timestamp(System.currentTimeMillis());
 		timestamp.setNanos(0);
-		System.out.println(timestamp + " " + message);
+		out.println(timestamp + " " + message);
 	}
 	
 	// return string representing this node

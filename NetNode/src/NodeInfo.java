@@ -1,4 +1,3 @@
-package util;
 
 public class NodeInfo {
 	
