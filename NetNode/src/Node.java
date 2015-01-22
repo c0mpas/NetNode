@@ -1,5 +1,4 @@
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -70,8 +69,6 @@ public class Node {
 	 * constructors
 	 */
 	
-	private Node() {}
-	
 	public Node(int id, String file) {
 		if (id < 1) throw new RuntimeException("id invalid (must be > 0)");
 		if ((file == null) || (file.isEmpty())) throw new RuntimeException("filename invalid");
@@ -114,6 +111,8 @@ public class Node {
 			nodeInfoList.remove(pos);
 		}
 		
+		// listen to incoming messages
+		incoming = new NodeConnection(this, this.node);
 		listen();
 		
 		log(this.toString());
@@ -129,6 +128,7 @@ public class Node {
 
 	private void listen() {
 		// open server socket and listen
+		incoming.listen();
 	}
 	
 	private void run() {
@@ -155,15 +155,22 @@ public class Node {
 			}
 			
 			switch (choice) {
-				case 1 :	sendMessageInfo();
+				case 1 :	// todo
+							sendMessageInfo(/* todo */);
 							break;
-				case 2 :	break;
-				case 3 :	break;
-				case 4 :	break;
-				default :	break;
+				case 2 :	// todo
+							break;
+				case 3 :	// todo
+							break;
+				case 4 :	menu = false;
+							break;
+				default :	// do nothing
+							break;
 			}
 			// todo
 		}
+		
+		in.close();
 	}
 	
 	// stop this node
@@ -256,7 +263,7 @@ public class Node {
 	 * outgoing message handling
 	 */
 	
-	private void sendMessageInfo() {
+	private void sendMessageInfo(/* todo */) {
 		// todo
 	}
 	
@@ -267,11 +274,12 @@ public class Node {
 
 	// show menu
 	private void showMenu() {
+		out.println(" ");
 		out.println("########## Node ##########");
-		out.println("# 1  Send Message ");
-		out.println("# 2  Send Echo ");
-		out.println("# 3  Start Rumour ");
-		out.println("# 4  Quit (all) ");
+		out.println("#  1  Send Message        ");
+		out.println("#  2  Send Echo           ");
+		out.println("#  3  Start Rumour        ");
+		out.println("#  4  Terminate all Nodes ");
 		out.println("##########################");
 	}
 	
