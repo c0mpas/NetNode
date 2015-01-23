@@ -1,5 +1,6 @@
 import java.io.Serializable;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class NodeMessage implements Serializable {
 
@@ -14,7 +15,7 @@ public class NodeMessage implements Serializable {
 	private String message;
 	private NodeInfo sender;
 	private NodeInfo receiver;
-	private int hash;
+	private String hash;
 	
 	
 	public NodeMessage(int type) {
@@ -71,8 +72,27 @@ public class NodeMessage implements Serializable {
 		return this.message;
 	}
 	
-	public static int getHash() {
-		return String.valueOf(System.currentTimeMillis()).hashCode();
+	public static String getHash() {
+		// get current Time for hash base
+		String time = String.valueOf(System.currentTimeMillis());
+		MessageDigest md = null;
+		try {
+			md = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			try {
+				md = MessageDigest.getInstance("MD5");
+			} catch (NoSuchAlgorithmException ex) {
+				e.printStackTrace();
+			}
+		}
+		md.update(time.getBytes());
+		byte byteData[] = md.digest();
+		//convert the byte to hex format
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < byteData.length; i++) {
+			sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+		}
+		return sb.toString();
 	}
 	
 	public String toString() {
