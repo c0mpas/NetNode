@@ -66,7 +66,7 @@ public class NodeConnection {
 					outputStream.close();
 					socket.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					Node.log("node " + String.valueOf(partner.getId()) + "unreachable");
 				}
 			}
 		};

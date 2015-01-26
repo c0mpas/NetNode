@@ -244,6 +244,8 @@ public class Node {
 
 	public void processMessageInfo(NodeMessage message) {
 		log(message.toString());
+		waitForIt(3);
+		sendMessageId();
 	}
 
 	public void processMessageEcho(NodeMessage message) {
@@ -283,24 +285,33 @@ public class Node {
 		
 		if (msg != null && !msg.isEmpty()) {
 			NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_INFO, msg);
-			for (NodeConnection connection : connections) {
-				synchronized (this) {
-					connection.send(message);
-				}
-			}
+			sendMessage(message);
 		}
 	}
 	
 	// send quit message to terminate all nodes
 	private void sendMessageQuit() {
 		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_QUIT);
+		sendMessage(message);
+	}
+
+	// send id to all neighbours
+	private void sendMessageId() {
+		String msg = "ID=" + String.valueOf(node.getId());
+		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_INFO, msg);
+		sendMessage(message);
+		log(message.getMessage());
+	}
+
+	// send message to all neighbours
+	private void sendMessage(NodeMessage message) {
 		for (NodeConnection connection : connections) {
 			synchronized (this) {
 				connection.send(message);
 			}
 		}
 	}
-	
+
 
 	/*
 	 * miscellaneous
