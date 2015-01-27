@@ -12,16 +12,15 @@ import org.apache.commons.cli.ParseException;
 public class Node {
 	
 	private NodeInfo node;
-	
-	private String file;
+	private String nodefile;
+	private String graphfile;
 	private ArrayList<NodeConnection> connections;
 	private NodeConnection incoming;
+	private static PrintStream out = System.out;
+	private Scanner in;
+	private ArrayList<Rumour> rumours;
+	private boolean active;
 	
-	private static final int neighbourCount = 3;
-	
-	static PrintStream out = System.out;
-	Scanner in;
-
 
 	/*
 	 * main method
@@ -36,7 +35,8 @@ public class Node {
 		Options options = CommandLineOptions.getDefaultOptions();
 		
 		int id = 0;
-		String file = "";
+		String nodefile = null;
+		String graphfile = null;
 		
 		try {
 		    // parse the command line arguments
@@ -49,12 +49,18 @@ public class Node {
 		    }
 		    // check input file
 		    if (line.hasOption("file")) {
-		        file = line.getOptionValue("file");
+		        nodefile = line.getOptionValue("file");
 		    } else {
 		    	throw new RuntimeException("input file");
 		    }
+		    // check graph file
+		    if (line.hasOption("graph")) {
+		        graphfile = line.getOptionValue("graph");
+		    } else {
+		    	throw new RuntimeException("graph file");
+		    }
 		    // create node
-		    new Node(id, file).init();
+		    new Node(id, nodefile, graphfile).init();
 		} catch (ParseException e) {
 		    log("parse error: " + e.getMessage());
 		} catch (RuntimeException e) {
@@ -70,11 +76,13 @@ public class Node {
 	 * constructors
 	 */
 	
-	public Node(int id, String file) {
+	public Node(int id, String nodefile, String graphfile) {
 		if (id < 1) throw new RuntimeException("id invalid (must be > 0)");
-		if ((file == null) || (file.isEmpty())) throw new RuntimeException("filename invalid");
+		if ((nodefile == null) || (nodefile.isEmpty())) throw new RuntimeException("nodefile invalid");
+		if ((graphfile == null) || (graphfile.isEmpty())) throw new RuntimeException("graphfile invalid");
 		this.node = new NodeInfo(id);
-		this.file = file;
+		this.nodefile = nodefile;
+		this.graphfile = graphfile;
 	}
 	
 
@@ -83,37 +91,46 @@ public class Node {
 	 */
 	
 	public void init() {
-		connections = new ArrayList<NodeConnection>();
-		ArrayList<NodeInfo> nodeInfoList = parseNodeInfo(file);
+		this.active = true;
+		this.connections = new ArrayList<NodeConnection>();
+		ArrayList<NodeInfo> nodeInfoList = parseNodeInfo(this.nodefile);
+		ArrayList<Pair> graph = parseGraph(this.graphfile);
 		
 		// find yourself in node list
 		boolean found = false;
-		int index = -1;
 		for (NodeInfo current : nodeInfoList) {
 			if (current.getId() == this.node.getId()) {
 				this.node = current;
 				found = true;
-				index = nodeInfoList.indexOf(current);
 				break;
 			}
 		}
 		if (!found) throw new RuntimeException("node is not part of the node network");
 		
-		// determine possible neighbours (remove yourself from list)
-		nodeInfoList.remove(index);
-		
-		// choose neighbours and connect to them
-		for (int i = 1; i <= neighbourCount; i++) {
-			int pos = getRand(0,nodeInfoList.size()-1);
-			NodeInfo current = nodeInfoList.get(pos);
-			// establish connection to this neighbour
-			connectTo(current);
-			// remove this neighbour from list
-			nodeInfoList.remove(pos);
+		// connect to neighbours
+		for (Pair p : graph) {
+			if (p.left == this.node.getId()) {
+				// get info for this neighbour
+				NodeInfo current = null;
+				for (NodeInfo node : nodeInfoList) {
+					if (node.getId() == p.right) current = node;
+				}
+				// establish connection to this neighbour
+				connectTo(current);
+			}
+			if (p.right == this.node.getId()) {
+				// get info for this neighbour
+				NodeInfo current = null;
+				for (NodeInfo node : nodeInfoList) {
+					if (node.getId() == p.left) current = node;
+				}
+				// establish connection to this neighbour
+				connectTo(current);
+			}
 		}
 		
 		// listen to incoming messages
-		incoming = new NodeConnection(this, this.node);
+		this.incoming = new NodeConnection(this, this.node);
 		listen();
 		
 		log(this.toString());
@@ -129,7 +146,7 @@ public class Node {
 
 	private void listen() {
 		// open server socket and listen
-		incoming.listen();
+		this.incoming.listen();
 	}
 	
 	private void run() {
@@ -161,16 +178,15 @@ public class Node {
 							break;
 				case 2 :	// todo
 							break;
-				case 3 :	// todo
+				case 3 :	sendMessageRumour();
 							break;
 				case 4 :	sendMessageQuit();
-							waitForIt(5);
 							menu = false;
+							waitForIt(1);
 							break;
 				default :	// do nothing
 							break;
 			}
-			// todo
 		}
 		
 		in.close();
@@ -178,7 +194,8 @@ public class Node {
 	
 	// stop this node
 	public void quit() {
-		// close connections?
+		log("shutting down");
+		this.incoming.stopListening();
 		log("node " + this.node.getId() + " terminated");
 		waitForIt(1);
 		System.exit(0);
@@ -188,7 +205,23 @@ public class Node {
 	private ArrayList<NodeInfo> parseNodeInfo(String filename) {
 		ArrayList<NodeInfo> result = new ArrayList<NodeInfo>();
 		try {
-			result = FileParser.parse(filename);
+			result = FileParser.parseInfo(filename);
+		} catch (FileNotFoundException e) {
+			log("unable to parse input file");
+			quit();
+		} catch (Exception e) {
+			e.printStackTrace();
+			quit();
+		}
+		// result = FileParser.getDummy();
+		return result;
+	}
+
+	// parse graph from file to arraylist
+	private ArrayList<Pair> parseGraph(String filename) {
+		ArrayList<Pair> result = new ArrayList<Pair>();
+		try {
+			result = FileParser.parseGraph(filename);
 		} catch (FileNotFoundException e) {
 			log("unable to parse input file");
 			quit();
@@ -203,7 +236,7 @@ public class Node {
 	private void connectTo(NodeInfo node) {
 		// establish connection to node
 		NodeConnection connection = new NodeConnection(this, node);
-		connections.add(connection);
+		this.connections.add(connection);
 	}
 
 	
@@ -227,42 +260,85 @@ public class Node {
 	 */
 	
 	// process incoming message
-	public void processMessage(NodeMessage message) {
-		log(message.toString());
-		switch (message.getType()) {
-			case NodeMessage.MSG_TYPE_INFO :	processMessageInfo(message);
-												break;
-			case NodeMessage.MSG_TYPE_ECHO :	processMessageEcho(message);
-												break;
-			case NodeMessage.MSG_TYPE_RUMOUR :	processMessageRumour(message);
-												break;
-			case NodeMessage.MSG_TYPE_QUIT :	processMessageQuit(message);
-												break;
-			default :							break;
+	public synchronized void processMessage(NodeMessage message) {
+		Thread processMessageThread = new Thread() {
+			public void run() {
+				switch (message.getType()) {
+					case NodeMessage.MSG_TYPE_INFO :	processMessageInfo(message);
+														break;
+					case NodeMessage.MSG_TYPE_ECHO :	processMessageEcho(message);
+														break;
+					case NodeMessage.MSG_TYPE_RUMOUR :	processMessageRumour(message);
+														break;
+					case NodeMessage.MSG_TYPE_ID :		processMessageId(message);
+														break;
+					case NodeMessage.MSG_TYPE_QUIT :	processMessageQuit(message);
+														break;
+					default :							break;
+				}
+			}
+		};
+		processMessageThread.start();
+	}
+
+	public synchronized void processMessageInfo(NodeMessage message) {
+		Thread thread = new Thread() {
+			public void run() {
+				log("received message from " + message.getSender().getId() + ": " + message.getMessage());
+				waitForIt(2);
+				sendMessageId();
+			}
+		};
+		thread.start();
+	}
+
+	public synchronized void processMessageEcho(NodeMessage message) {
+		// todo
+	}
+
+	public synchronized void processMessageRumour(NodeMessage message) {
+		receivedRumour(message);
+		Rumour rumour;
+		// check if rumour already known
+		int index = isKnown(message);
+		if (index >= 0) {
+			// increase rumour
+			rumour = this.rumours.get(index);
+			if (rumour.isTrusted()) {
+				// already trusted, do nothing
+				return;
+			} else {
+				// increase rumour credibility
+				rumour.heard();
+				if (rumour.isTrusted()) {
+					// log that this rumour is trusted now
+					log("i believe that " + rumour.getTopic());
+				} else {
+					// forward rumour
+					forwardRumour(message);
+				}
+			}
+		} else {
+			// new rumour
+			rumour = new Rumour(message.getMessage());
+			rumours.add(rumour);
+			// forward rumour
+			forwardRumour(message);
 		}
 	}
 
-	public void processMessageInfo(NodeMessage message) {
-		log(message.toString());
-		waitForIt(3);
-		sendMessageId();
+	public synchronized void processMessageId(NodeMessage message) {
+		log("received message from " + message.getSender().getId() + ": " + message.getMessage());
 	}
 
-	public void processMessageEcho(NodeMessage message) {
-		// todo
-	}
-
-	public void processMessageRumour(NodeMessage message) {
-		// todo
-	}
-
-	public void processMessageQuit(NodeMessage message) {
-		log("received quit message");
-		waitForIt(3);
+	public synchronized void processMessageQuit(NodeMessage message) {
+		log("received shutdown message");
+		sendMessageQuit();
+		waitForIt(2);
 		quit();
 	}
 
-	public void forwardMessage(NodeMessage message) {
+	public synchronized void forwardMessage(NodeMessage message) {
 		// todo
 	}
 
@@ -272,7 +348,7 @@ public class Node {
 	 */
 	
 	// send info message with text
-	private void sendMessageInfo() {
+	private synchronized void sendMessageInfo() {
 		out.println(" ");
 		out.println("# message #");
 		String msg = null;
@@ -288,24 +364,58 @@ public class Node {
 			sendMessage(message);
 		}
 	}
+
+	// send rumour message with text
+	private synchronized void sendMessageRumour() {
+		out.println(" ");
+		out.println("# rumour #");
+		String msg = null;
+		
+		try {
+			msg = in.nextLine();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if (msg != null && !msg.isEmpty()) {
+			NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_RUMOUR, msg);
+			message.setSender(this.node);
+			sendMessage(message);
+		}
+	}
+	
+	// forward rumour message
+	private synchronized void forwardRumour(NodeMessage message) {
+		NodeInfo sender = message.getSender();
+		// new sender
+		message.setSender(this.node);
+		// send rumour to all neighbours except sender
+		for (NodeConnection connection : this.connections) {
+			if (connection.getPartner().getId() != sender.getId()) {
+				synchronized (this) {
+					connection.send(message);
+				}
+			}
+		}
+	}
 	
 	// send quit message to terminate all nodes
-	private void sendMessageQuit() {
+	private synchronized void sendMessageQuit() {
 		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_QUIT);
 		sendMessage(message);
 	}
 
 	// send id to all neighbours
-	private void sendMessageId() {
-		String msg = "ID=" + String.valueOf(node.getId());
-		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_INFO, msg);
+	private synchronized void sendMessageId() {
+		String msg = "ID=" + String.valueOf(this.node.getId());
+		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_ID, msg);
 		sendMessage(message);
 		log(message.getMessage());
 	}
 
 	// send message to all neighbours
-	private void sendMessage(NodeMessage message) {
-		for (NodeConnection connection : connections) {
+	private synchronized void sendMessage(NodeMessage message) {
+		for (NodeConnection connection : this.connections) {
 			synchronized (this) {
 				connection.send(message);
 			}
@@ -324,6 +434,22 @@ public class Node {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	// log received rumour
+	private void receivedRumour(NodeMessage message) {
+		log("received rumour from " + message.getSender().getId() + " : " + message.getMessage());
+	}
+	
+	// return pos of rumour (-1 if unknown)
+	private int isKnown(NodeMessage message) {
+		if (this.rumours.size() < 1) return -1;
+		for (Rumour r : this.rumours) {
+			if (r.getTopic().equals(message.getMessage())) {
+				return rumours.indexOf(r);
+			}
+		}
+		return -1;
 	}
 	
 	// show menu
@@ -348,9 +474,9 @@ public class Node {
 	// return string representing this node
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("node(\n").append(node);
-		sb.append("|file=").append(file);
-		sb.append("|connections(").append(connections);
+		sb.append("node(\n").append(this.node);
+		sb.append("|file=").append(this.nodefile);
+		sb.append("|connections(").append(this.connections);
 		sb.append(")");
 		return sb.toString();
 	}

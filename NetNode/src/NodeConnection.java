@@ -54,7 +54,15 @@ public class NodeConnection {
 		listenerThread.start();
 	}
 	
+	public synchronized void stopListening() {		
+		listening = false;
+	}
+	
 	public synchronized void send(NodeMessage message) {
+		// add sender and receiver information to message
+		message.setSender(node.getNodeInfo());
+		message.setReceiver(partner);
+		// send message in new thread
 		Thread senderThread = new Thread() {
 			public void run() {
 				try {
@@ -66,11 +74,16 @@ public class NodeConnection {
 					outputStream.close();
 					socket.close();
 				} catch (IOException e) {
-					Node.log("node " + String.valueOf(partner.getId()) + "unreachable");
+					Node.log("node " + String.valueOf(partner.getId()) + " unreachable");
 				}
 			}
 		};
 		senderThread.start();
+	}
+	
+	// return partner
+	public NodeInfo getPartner() {
+		return this.partner;
 	}
 	
 	// return string representing this node

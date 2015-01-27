@@ -1,5 +1,8 @@
+import java.io.Serializable;
 
-public class NodeInfo {
+public class NodeInfo implements Serializable {
+	
+	private static final long serialVersionUID = 1668447488066402903L;
 	
 	private int id;
 	private String host;

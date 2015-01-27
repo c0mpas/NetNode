@@ -9,6 +9,7 @@ public class NodeMessage implements Serializable {
 	public static final int MSG_TYPE_INFO	= 1;
 	public static final int MSG_TYPE_ECHO	= 2;
 	public static final int MSG_TYPE_RUMOUR	= 3;
+	public static final int MSG_TYPE_ID		= 4;
 	public static final int MSG_TYPE_QUIT	= 9;
 	
 	private int type;
@@ -31,7 +32,7 @@ public class NodeMessage implements Serializable {
 
 	
 	private boolean isValid(int t) {
-		if (t==1 || t==2 || t==3 || t==9) return true;
+		if (t==1 || t==2 || t==3 || t==4 || t==9) return true;
 		return false;
 	}
 	
@@ -47,6 +48,23 @@ public class NodeMessage implements Serializable {
 	}
 
 	
+	public NodeInfo getSender() {
+		return sender;
+	}
+
+	public void setSender(NodeInfo sender) {
+		this.sender = sender;
+	}
+
+	public NodeInfo getReceiver() {
+		return receiver;
+	}
+
+	public void setReceiver(NodeInfo receiver) {
+		this.receiver = receiver;
+	}
+
+	
 	public int getType() {
 		return this.type;
 	}
@@ -59,6 +77,8 @@ public class NodeMessage implements Serializable {
 			case MSG_TYPE_ECHO :	text = "echo";
 									break;
 			case MSG_TYPE_RUMOUR :	text = "rumour";
+									break;
+			case MSG_TYPE_ID :		text = "rumour";
 									break;
 			case MSG_TYPE_QUIT :	text = "quit";
 									break;
