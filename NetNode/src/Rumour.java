@@ -22,7 +22,7 @@ public class Rumour implements Serializable {
 	
 	public void heard() {
 		this.heardFrom++;
-		if (this.heardFrom > Rumour.TRUST_THRESHOLD) this.trusted = true;
+		if (this.heardFrom >= Rumour.TRUST_THRESHOLD) this.trusted = true;
 	}
 	
 	public boolean isTrusted() {

@@ -19,7 +19,6 @@ public class Node {
 	private static PrintStream out = System.out;
 	private Scanner in;
 	private ArrayList<Rumour> rumours;
-	private boolean active;
 	
 
 	/*
@@ -91,8 +90,8 @@ public class Node {
 	 */
 	
 	public void init() {
-		this.active = true;
 		this.connections = new ArrayList<NodeConnection>();
+		this.rumours = new ArrayList<Rumour>();
 		ArrayList<NodeInfo> nodeInfoList = parseNodeInfo(this.nodefile);
 		ArrayList<Pair> graph = parseGraph(this.graphfile);
 		
@@ -321,6 +320,7 @@ public class Node {
 		} else {
 			// new rumour
 			rumour = new Rumour(message.getMessage());
+			rumour.heard();
 			rumours.add(rumour);
 			// forward rumour
 			forwardRumour(message);
@@ -390,10 +390,14 @@ public class Node {
 		// new sender
 		message.setSender(this.node);
 		// send rumour to all neighbours except sender
+		int limit = calculateLimit();
 		for (NodeConnection connection : this.connections) {
-			if (connection.getPartner().getId() != sender.getId()) {
-				synchronized (this) {
-					connection.send(message);
+			if (limit > 0) {
+				if (connection.getPartner().getId() != sender.getId()) {
+					synchronized (this) {
+						connection.send(message);
+					}
+					limit--;
 				}
 			}
 		}
@@ -439,6 +443,11 @@ public class Node {
 	// log received rumour
 	private void receivedRumour(NodeMessage message) {
 		log("received rumour from " + message.getSender().getId() + " : " + message.getMessage());
+	}
+	
+	// calculate limit for forwarding rumour messages
+	private int calculateLimit() {
+		return this.connections.size();
 	}
 	
 	// return pos of rumour (-1 if unknown)
