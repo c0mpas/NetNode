@@ -19,11 +19,22 @@ public class NodeMessage implements Serializable {
 	private String hash;
 	
 	
+	/**
+	 * constructor
+	 * 
+	 * @param type	message type
+	 */
 	public NodeMessage(int type) {
 		setType(type);
 		this.hash = getHash();
 	}
 	
+	/**
+	 * constructor
+	 * 
+	 * @param type		message type
+	 * @param message	message text
+	 */
 	public NodeMessage(int type, String message) {
 		setType(type);
 		setMessage(message);
@@ -31,6 +42,12 @@ public class NodeMessage implements Serializable {
 	}
 
 	
+	/**
+	 * check if message type is valid
+	 * 
+	 * @param t	the message type to check
+	 * @return	true, if message type is valid
+	 */
 	private boolean isValid(int t) {
 		if (t==1 || t==2 || t==3 || t==4 || t==9) return true;
 		return false;
@@ -69,6 +86,11 @@ public class NodeMessage implements Serializable {
 		return this.type;
 	}
 	
+	/**
+	 * return text representing the message type
+	 * 
+	 * @return	text representing the message type
+	 */
 	public String getTypeText() {
 		String text = null;
 		switch (this.type) {
@@ -92,6 +114,11 @@ public class NodeMessage implements Serializable {
 		return this.message;
 	}
 	
+	/**
+	 * generates a hash for identification of the message
+	 * 
+	 * @return	a hash
+	 */
 	public static String getHash() {
 		// get current Time for hash base
 		String time = String.valueOf(System.currentTimeMillis());
@@ -115,6 +142,9 @@ public class NodeMessage implements Serializable {
 		return sb.toString();
 	}
 	
+	/* 
+	 * return string representation of this message
+	 */
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("NodeMessage(type=").append(type);

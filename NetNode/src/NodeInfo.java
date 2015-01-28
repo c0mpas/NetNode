@@ -9,10 +9,22 @@ public class NodeInfo implements Serializable {
 	private int port;
 	
 	
+	/**
+	 * constructor
+	 * 
+	 * @param id	the node id
+	 */
 	public NodeInfo(int id) {
 		setId(id);
 	}
 	
+	/**
+	 * constructor
+	 * 
+	 * @param id	the node id
+	 * @param host	the host
+	 * @param port	the port
+	 */
 	public NodeInfo(int id, String host, int port) {
 		setId(id);
 		setHost(host);
