@@ -7,6 +7,13 @@ import java.util.Scanner;
 
 public class FileParser {
 	
+	/**
+	 * parse a node information file and create an array list of node information objects
+	 * 
+	 * @param file	input file
+	 * @return		an array list of node information objects
+	 * @throws FileNotFoundException
+	 */
 	public static ArrayList<NodeInfo> parseInfo(String file) throws FileNotFoundException {
 		ArrayList<NodeInfo> nodeInfoList = new ArrayList<NodeInfo>();
 		// parse file
@@ -38,6 +45,13 @@ public class FileParser {
 		return nodeInfoList;
 	}
 
+	/**
+	 * parse a graph file and create an array list of node pairs representing the graph
+	 * 
+	 * @param file	input file
+	 * @return		an array list of node pairs representing the graph
+	 * @throws FileNotFoundException
+	 */
 	public static ArrayList<Pair> parseGraph(String file) throws FileNotFoundException {
 		ArrayList<Pair> graph = new ArrayList<Pair>();
 		// parse file

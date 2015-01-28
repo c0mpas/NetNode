@@ -11,11 +11,20 @@ public class NodeConnection {
 	private NodeInfo partner;
 	boolean listening;
 	
+	/**
+	 * constructor
+	 * 
+	 * @param node		the node owning this connection (message sender)
+	 * @param partner	the partner node (message receiver)
+	 */
 	public NodeConnection(Node node, NodeInfo partner) {
 		this.node = node;
 		this.partner = partner;
 	}
 	
+	/**
+	 * starts listening for incoming messages
+	 */
 	public synchronized void listen() {		
 		listening = true;
 		Thread listenerThread = new Thread() {
@@ -54,10 +63,18 @@ public class NodeConnection {
 		listenerThread.start();
 	}
 	
+	/**
+	 * stops listening
+	 */
 	public synchronized void stopListening() {		
 		listening = false;
 	}
 	
+	/**
+	 * send a generic message to partner
+	 * 
+	 * @param message	the message to send
+	 */
 	public synchronized void send(NodeMessage message) {
 		// add sender and receiver information to message
 		message.setSender(node.getNodeInfo());
@@ -81,12 +98,16 @@ public class NodeConnection {
 		senderThread.start();
 	}
 	
-	// return partner
+	/**
+	 * @return	the partner for this connection
+	 */
 	public NodeInfo getPartner() {
 		return this.partner;
 	}
 	
-	// return string representing this node
+	/* 
+	 * return string representing this object
+	 */
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("\nconnection(").append(partner).append(")");

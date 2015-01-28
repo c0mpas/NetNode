@@ -25,6 +25,12 @@ public class Node {
 	 * main method
 	 */
 	
+	/**
+	 * @param args	command line parameters
+	 * 				id		id of this node
+	 * 				file	input file for node information
+	 * 				graph	input file for node network layout
+	 */
 	public static void main(String[] args) {
 		log("=== NetNode ===");
 		
@@ -75,6 +81,11 @@ public class Node {
 	 * constructors
 	 */
 	
+	/**
+	 * @param id		unique node id for this node
+	 * @param nodefile	filename(-path) of configuration file for nodes
+	 * @param graphfile	filename(-path) of node network layout
+	 */
 	public Node(int id, String nodefile, String graphfile) {
 		if (id < 1) throw new RuntimeException("id invalid (must be > 0)");
 		if ((nodefile == null) || (nodefile.isEmpty())) throw new RuntimeException("nodefile invalid");
@@ -89,6 +100,9 @@ public class Node {
 	 * control functions
 	 */
 	
+	/**
+	 * initialize node
+	 */
 	public void init() {
 		this.connections = new ArrayList<NodeConnection>();
 		this.rumours = new ArrayList<Rumour>();
@@ -143,11 +157,17 @@ public class Node {
 		
 	}
 
+	/**
+	 * start listening for incoming data on specified port
+	 */
 	private void listen() {
 		// open server socket and listen
 		this.incoming.listen();
 	}
 	
+	/**
+	 * start user interface
+	 */
 	private void run() {
 		boolean menu = true;
 		String input = null;
@@ -191,7 +211,9 @@ public class Node {
 		in.close();
 	}
 	
-	// stop this node
+	/**
+	 * stop this node
+	 */
 	public void quit() {
 		log("shutting down");
 		this.incoming.stopListening();
@@ -200,7 +222,12 @@ public class Node {
 		System.exit(0);
 	}
 	
-	// parse info from file to arraylist
+	/**
+	 * parse info from file to array list
+	 * 
+	 * @param filename	filename(-path) of node configuration file
+	 * @return			array of node configuration information
+	 */
 	private ArrayList<NodeInfo> parseNodeInfo(String filename) {
 		ArrayList<NodeInfo> result = new ArrayList<NodeInfo>();
 		try {
@@ -216,7 +243,12 @@ public class Node {
 		return result;
 	}
 
-	// parse graph from file to arraylist
+	/**
+	 * parse graph from file to array list
+	 * 
+	 * @param filename	filename(-path) of graph file
+	 * @return			array of node pairs representing a graph
+	 */
 	private ArrayList<Pair> parseGraph(String filename) {
 		ArrayList<Pair> result = new ArrayList<Pair>();
 		try {
@@ -232,6 +264,11 @@ public class Node {
 		return result;
 	}
 	
+	/**
+	 * adds a connection to a specific node
+	 * 
+	 * @param node	the node to connect to
+	 */
 	private void connectTo(NodeInfo node) {
 		// establish connection to node
 		NodeConnection connection = new NodeConnection(this, node);
@@ -239,16 +276,9 @@ public class Node {
 	}
 
 	
-	/*
-	 * getter methods
+	/**
+	 * @return	the node information of this node
 	 */
-	
-	// returns a random number [min;max]
-	public static int getRand(int min, int max) {
-		return (int) (Math.random() * (++max - min) + min);
-	}
-	
-	// returns the NodeInfo of this node
 	public NodeInfo getNodeInfo() {
 		return this.node;
 	}
@@ -258,7 +288,11 @@ public class Node {
 	 * incoming message handling
 	 */
 	
-	// process incoming message
+	/**
+	 * process generic incoming message
+	 * 
+	 * @param message	the received message
+	 */
 	public synchronized void processMessage(NodeMessage message) {
 		Thread processMessageThread = new Thread() {
 			public void run() {
@@ -280,6 +314,11 @@ public class Node {
 		processMessageThread.start();
 	}
 
+	/**
+	 * process incoming info message
+	 * 
+	 * @param message	the received info message
+	 */
 	public synchronized void processMessageInfo(NodeMessage message) {
 		Thread thread = new Thread() {
 			public void run() {
@@ -291,10 +330,20 @@ public class Node {
 		thread.start();
 	}
 
+	/**
+	 * process incoming echo message
+	 * 
+	 * @param message	the received echo message
+	 */
 	public synchronized void processMessageEcho(NodeMessage message) {
 		// todo
 	}
 
+	/**
+	 * process incoming rumour message
+	 * 
+	 * @param message	the received rumour message
+	 */
 	public synchronized void processMessageRumour(NodeMessage message) {
 		receivedRumour(message);
 		Rumour rumour;
@@ -327,10 +376,20 @@ public class Node {
 		}
 	}
 
+	/**
+	 * process incoming id message
+	 * 
+	 * @param message	the received id message
+	 */
 	public synchronized void processMessageId(NodeMessage message) {
 		log("received message from " + message.getSender().getId() + ": " + message.getMessage());
 	}
 
+	/**
+	 * process incoming quit message
+	 * 
+	 * @param message	the received quit message
+	 */
 	public synchronized void processMessageQuit(NodeMessage message) {
 		log("received shutdown message");
 		sendMessageQuit();
@@ -338,6 +397,11 @@ public class Node {
 		quit();
 	}
 
+	/**
+	 * forward generic message
+	 * 
+	 * @param message	the message to forward
+	 */
 	public synchronized void forwardMessage(NodeMessage message) {
 		// todo
 	}
@@ -346,8 +410,10 @@ public class Node {
 	/*
 	 * outgoing message handling
 	 */
-	
-	// send info message with text
+
+	/**
+	 * send info message with text
+	 */
 	private synchronized void sendMessageInfo() {
 		out.println(" ");
 		out.println("# message #");
@@ -365,7 +431,9 @@ public class Node {
 		}
 	}
 
-	// send rumour message with text
+	/**
+	 * send rumour message with text
+	 */
 	private synchronized void sendMessageRumour() {
 		out.println(" ");
 		out.println("# rumour #");
@@ -384,7 +452,11 @@ public class Node {
 		}
 	}
 	
-	// forward rumour message
+	/**
+	 * forward rumour message (send to neighbours)
+	 * 
+	 * @param message	the rumour message to forward
+	 */
 	private synchronized void forwardRumour(NodeMessage message) {
 		NodeInfo sender = message.getSender();
 		// new sender
@@ -403,13 +475,17 @@ public class Node {
 		}
 	}
 	
-	// send quit message to terminate all nodes
+	/**
+	 * send quit message to terminate all nodes
+	 */
 	private synchronized void sendMessageQuit() {
 		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_QUIT);
 		sendMessage(message);
 	}
 
-	// send id to all neighbours
+	/**
+	 * send own id to all neighbours
+	 */
 	private synchronized void sendMessageId() {
 		String msg = "ID=" + String.valueOf(this.node.getId());
 		NodeMessage message = new NodeMessage(NodeMessage.MSG_TYPE_ID, msg);
@@ -417,7 +493,11 @@ public class Node {
 		log(message.getMessage());
 	}
 
-	// send message to all neighbours
+	/**
+	 * send message to all neighbours
+	 * 
+	 * @param message	the message to send
+	 */
 	private synchronized void sendMessage(NodeMessage message) {
 		for (NodeConnection connection : this.connections) {
 			synchronized (this) {
@@ -431,7 +511,11 @@ public class Node {
 	 * miscellaneous
 	 */
 
-	// wait for it
+	/**
+	 * wait for a specific number of seconds
+	 * 
+	 * @param sec	number of seconds to wait
+	 */
 	private void waitForIt(int sec) {
 		try {
 			Thread.sleep(1000 * sec);
@@ -439,18 +523,42 @@ public class Node {
 			e.printStackTrace();
 		}
 	}
-	
-	// log received rumour
+
+	/**
+	 * returns a random number [min;max]
+	 * 
+	 * @param min	the smallest possible number
+	 * @param max	the largest possible number
+	 * @return		a random number from the interval [min, max]
+	 */
+	public static int getRand(int min, int max) {
+		return (int) (Math.random() * (++max - min) + min);
+	}
+
+	/**
+	 * log a received rumour
+	 * 
+	 * @param message	the received rumour message
+	 */
 	private void receivedRumour(NodeMessage message) {
 		log("received rumour from " + message.getSender().getId() + " : " + message.getMessage());
 	}
 	
-	// calculate limit for forwarding rumour messages
+	/**
+	 * calculate limit for forwarding rumour messages
+	 * 
+	 * @return	the limit for rumour messages (how many neighbours will receive it)
+	 */
 	private int calculateLimit() {
 		return this.connections.size();
 	}
 	
-	// return pos of rumour (-1 if unknown)
+	/**
+	 * return index of rumour (-1 if unknown)
+	 * 
+	 * @param message	the message to check
+	 * @return			the index of the message in rumours
+	 */
 	private int isKnown(NodeMessage message) {
 		if (this.rumours.size() < 1) return -1;
 		for (Rumour r : this.rumours) {
@@ -461,7 +569,9 @@ public class Node {
 		return -1;
 	}
 	
-	// show menu
+	/**
+	 * show menu for user interaction
+	 */
 	private void showMenu() {
 		out.println(" ");
 		out.println("########## Node ##########");
@@ -472,7 +582,11 @@ public class Node {
 		out.println("##########################");
 	}
 	
-	// print message with timestamp
+	/**
+	 * print message with timestamp
+	 * 
+	 * @param message	the message to log
+	 */
 	public static void log(String message) {
 		if ((message == null) || (message.isEmpty())) message = "";
 		java.sql.Timestamp timestamp = new java.sql.Timestamp(System.currentTimeMillis());
@@ -480,7 +594,9 @@ public class Node {
 		out.println(timestamp + " " + message);
 	}
 	
-	// return string representing this node
+	/*
+	 * return string representing this node
+	 */
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("node(\n").append(this.node);

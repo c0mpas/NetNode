@@ -10,6 +10,11 @@ public class Rumour implements Serializable {
 	private int heardFrom;
 	private String topic;
 
+	/**
+	 * constructor
+	 * 
+	 * @param topic	the topic of the rumour
+	 */
 	public Rumour(String topic) {
 		this.heardFrom = 0;
 		this.trusted = false;
@@ -20,6 +25,9 @@ public class Rumour implements Serializable {
 		}
 	}
 	
+	/**
+	 * increase credibility of this rumour and check if it can be trusted
+	 */
 	public void heard() {
 		this.heardFrom++;
 		if (this.heardFrom >= Rumour.TRUST_THRESHOLD) this.trusted = true;

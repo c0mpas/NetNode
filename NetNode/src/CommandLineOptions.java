@@ -2,6 +2,12 @@
 import org.apache.commons.cli.*;
 
 public class CommandLineOptions {
+	
+	/**
+	 * return the command line options for use in command line parser
+	 * 
+	 * @return	the options
+	 */
 	public static Options getDefaultOptions() {
 		// create the Options
 		Options options = new Options();
@@ -12,4 +18,5 @@ public class CommandLineOptions {
 		
 		return options;
 	}
+	
 }
